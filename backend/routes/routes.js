@@ -10,6 +10,94 @@ let weekday = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY',
 router.get('/po' , (req , res)=>{
     res.send("hello");
 })
+const generateTasksTable = (taskNames, taskDescriptions) => `
+  <html>
+  <body>
+    <h1>Today's Classes</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Class Name</th>
+          <th>Class Timings</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${taskNames.map((name, index) => `
+          <tr>
+            <td>${name}</td>
+            <td>${taskDescriptions[index]}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <h2>Have a Good Day ! </h2>
+  </body>
+  </html>
+`;
+const mailer1 = ( classname1 , classtime1) => {
+    let nodemailer = require('nodemailer');
+    let transporter = nodemailer.createTransport({
+        service: "gmail",
+        port: 3000,
+        secure: true,
+        auth: {
+            user: process.env.MY_EMAIL,
+            pass: process.env.MY_PASSWORD
+        }
+    });
+    let mailOptions = {
+        from: process.env.MY_EMAIL,
+        to: 'rohitagarwal2207@gmail.com' ,
+        subject: "Good Morning , These are todays classes sheduled ",
+        html: generateTasksTable(classname1 , classtime1) ,
+    };
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error)
+        }
+        else {
+            console.log(`Email sent ` + info.response)
+        }
+    });
+}
+router.get('/morningalert' , (req , res)=>{
+    var currentdate = new Date();
+    var time = currentdate.getHours();
+    console.log(time);
+    User.find({}, (err, users) => {
+        if (err) {
+          console.error('Error fetching users:', err);
+          return;
+        }
+      
+        users.forEach(user => {
+                let newone = user[weekday];
+                let classname = [];
+                let classtime = [];
+                newone.forEach(classe =>{
+                    if(classe.slot !== ''){
+                        classname.push(classe.slot);
+                        classtime.push(classe.timing);
+                    }
+                });
+               
+              
+               mailer1(classname ,classtime);
+
+        });
+      });
+    res.send("hello i m here");
+        
+
+
+
+
+
+
+
+
+
+})
 console.log("ROHIT CHOM")
 router.post('/signup', (request, response) => {
     console.log("ROHIT CHOM")
